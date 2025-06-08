@@ -1,0 +1,4 @@
+*.ipynb
+!demo/demo.ipynb
+*.pyc
+*.txt
