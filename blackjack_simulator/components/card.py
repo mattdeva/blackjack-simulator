@@ -3,7 +3,7 @@ from itertools import product
 
 from blackjack_simulator.components.enums import CardSuit, CardValue
 
-_card_value_lookup = {v.value: v for v in CardValue}
+card_value_lookup = {v.value: v for v in CardValue}
 
 _value_suit_lookup = {
     'C':CardSuit.CLUBS,
@@ -32,12 +32,12 @@ class Card:
             if not value in range(2,11):
                 raise ValueError(f"int value must be in range(2,11). got {value}.")
             else:
-                return _card_value_lookup[value]
+                return card_value_lookup[value]
         elif isinstance(value, str):
             if len(value) > 1:
                 raise ValueError(f"str value must be in ['J', 'Q', 'K', 'A']. got {value}.")
             else:
-                return _card_value_lookup[value]
+                return card_value_lookup[value]
         else:
             raise ValueError(f"expected type (CardValue, int, str). got {type(value)}.")
             
