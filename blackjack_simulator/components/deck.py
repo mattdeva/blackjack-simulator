@@ -9,6 +9,7 @@ from blackjack_simulator.components.enums import CardSuit, CardValue
 class Deck:
     def __init__(self, cards:list[Card]|None=None):
         self.cards = cards
+        self.drawn_cards = [] # always set to empty list on init
 
     def __len__(self):
         return len(self.cards)
@@ -51,4 +52,5 @@ class Deck:
         self.cards.insert(card, position)
 
     def draw(self) -> Card:
-        return self.cards.pop(0)
+        self.drawn_cards.append(self.cards.pop(0))
+        return self.drawn_cards[-1]
