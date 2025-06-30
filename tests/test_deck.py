@@ -1,5 +1,3 @@
-import pytest
-
 from blackjack_simulator.components.card import Card
 from blackjack_simulator.components.deck import Deck
 
