@@ -40,15 +40,6 @@ class CountConfig:
                 out_list.append(card_value_lookup[i])
         return out_list
 
-def get_count(deck:Deck, count_config:CountConfig):
-    count = 0
-    for card in deck.drawn_cards:
-        if card.value in count_config.minus_list:
-            count -= 1
-        if card.value in count_config.plus_list:
-            count += 1
-    return count
-
 # cc = CountConfig.from_low_high_cutoffs(6, 10)
 
 # (
