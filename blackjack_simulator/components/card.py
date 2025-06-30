@@ -1,6 +1,3 @@
-import random
-from itertools import product
-
 from blackjack_simulator.components.enums import CardSuit, CardValue
 
 card_value_lookup = {v.value: v for v in CardValue}
@@ -26,6 +23,7 @@ class Card:
     
     @staticmethod
     def _value_init(value:CardValue|str|int) -> CardValue:
+        ''' checks to make sure the value input for Card is ok '''
         if isinstance(value, CardValue):
             return value
         elif isinstance(value, int):
@@ -43,6 +41,7 @@ class Card:
             
     @staticmethod
     def _suit_init(suit:CardSuit|str) -> CardSuit:
+        ''' checks to make sure suit input for Card is ok '''
         if isinstance(suit, CardSuit):
             return suit
         elif isinstance(suit, str):
@@ -55,15 +54,10 @@ class Card:
     
     @property
     def game_value(self) -> int: # NOTE: stupid name
+        ''' int value a card represents during game. Ace = 1'''
         if self.value in [CardValue.JACK, CardValue.QUEEN, CardValue.KING]:
             return 10
         elif self.value == CardValue.ACE: # uh oh
             return 1 # will just return 1, and deal with the 11 piece in the hand code.
         else:
             return self.value.value
-
-# NOTE: prob shouldn't be in components but is ok for now (yes i say that a lot)
-def get_random_cards(n:int) -> list[Card]:
-    ''' n random card creation with replacement '''
-    available_cards = list(product(CardSuit, CardValue)) 
-    return [Card(value, suit) for suit,value in random.choices(available_cards, k=n)]
