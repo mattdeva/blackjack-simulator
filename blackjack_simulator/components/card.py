@@ -1,5 +1,7 @@
 from blackjack_simulator.components.enums import CardSuit, CardValue
 
+from typing import Any
+
 card_value_lookup = {v.value: v for v in CardValue}
 
 _value_suit_lookup = {
@@ -20,6 +22,15 @@ class Card:
     
     def __repr__(self):
         return f'Card({self.value.value}, {self.suit.value})'
+    
+    def __eq__(self, other:Any):
+        if not isinstance(other, Card):
+            return False
+        else:
+            return (
+                self.value == other.value and
+                self.suit == other.suit
+            )
     
     @staticmethod
     def _value_init(value:CardValue|str|int) -> CardValue:
