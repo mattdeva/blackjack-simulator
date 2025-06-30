@@ -33,7 +33,10 @@ class Deck:
     def shuffle(self):
         random.shuffle(self.cards)
     
-    def add_card(self, card:Card, position:str|int|None) -> None:
+    def add_card(self, card:Card, position:str|int|None=None) -> None:
+        ''' add card to deck to position in deck. if no position specified, card added to random position '''
+
+        # NOTE: dont think this is being used.. but ill still keep it        
         if isinstance(position, str):
             if position not in ['top', 'bottom', 'middle']:
                 raise ValueError(f"position must be in ['top', 'bottom', 'middle']. got {position}")
@@ -49,8 +52,9 @@ class Deck:
         else:
             position = random.randint(1,len(self))
 
-        self.cards.insert(card, position)
+        self.cards.insert(position, card)
 
     def draw(self) -> Card:
+        ''' draws cards from top of deck (beginning of list of deck.cards). appends to drawn_cards attribute '''
         self.drawn_cards.append(self.cards.pop(0))
         return self.drawn_cards[-1]
