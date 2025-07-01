@@ -6,7 +6,7 @@ from blackjack_simulator.components.hand import PlayerHand, DealerHand
 from blackjack_simulator.components.deck import Deck
 from blackjack_simulator.components.chart import Chart
 
-from blackjack_simulator.simulation.bet import Bet
+from blackjack_simulator.components.bet import Bet
 from blackjack_simulator.simulation.game import run_dealer_actions, run_player_actions, calculate_payout
 
 from typing import Sequence

@@ -1,8 +1,8 @@
 from blackjack_simulator.components.chart import Chart
 from blackjack_simulator.components.deck import Deck
 from blackjack_simulator.components.hand import DealerHand
-from blackjack_simulator.components.enums import Action, HandState, CardValue
-from blackjack_simulator.simulation.bet import Bet
+from blackjack_simulator.components.enums import Action, HandState
+from blackjack_simulator.components.bet import Bet
 
 def run_player_actions(
         bets:list[Bet]|Bet, 
