@@ -31,7 +31,7 @@ class Hand:
 
     @property
     def soft(self) -> bool:
-        return self.has_ace and sum([card.game_value for card in self.cards]) < 11
+        return self.has_ace and sum([card.game_value for card in self.cards]) <= 11
     
     @property
     def total(self) -> int:
@@ -50,15 +50,10 @@ class Hand:
     def bust(self) -> bool:
         return True if self.total > 21 else False
 
-    # def _qc_init(self) -> None:
-        # if not isinstance(type(self.cards[0]), Card) and isinstance(type(self.cards[1]), Card):
-        #     raise ValueError(f"Hand must consist of Cards. got {type(self.cards[0], self.cards[1])}")
-        # NOTE: split hands will technically have one card for a little bit
-        # if not len(self.cards)==2:
-        #     raise ValueError(f"Hand must be length 2. got {len(self.cards)}")
-
     # seems silly.. but idk appending to the attritbute directly would feel weird
     def add_card(self, card:Card) -> None:
+        if not isinstance(card, Card):
+            raise ValueError(f'hand.add_card can only accept type Card as input. got {type(card)}')
         self.cards.append(card)
 
 
