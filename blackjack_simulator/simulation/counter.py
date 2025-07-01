@@ -4,8 +4,8 @@ from blackjack_simulator.components.card import card_value_lookup
 
 ValueList = list[str|int|CardValue]
 
-class CountConfig:
-
+class Counter:
+    ''' Helps craete and track card values to integer mapping '''
     def __init__(
         self,
         plus_list:ValueList,
@@ -39,11 +39,3 @@ class CountConfig:
             else:
                 out_list.append(card_value_lookup[i])
         return out_list
-
-# cc = CountConfig.from_low_high_cutoffs(6, 10)
-
-# (
-#     cc.minus_list,
-#     cc.neutral_list,
-#     cc.plus_list,
-# )
