@@ -1,4 +1,3 @@
-from blackjack_simulator.components.deck import Deck
 from blackjack_simulator.components.enums import CardValue
 from blackjack_simulator.components.card import card_value_lookup
 
