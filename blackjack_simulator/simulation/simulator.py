@@ -2,26 +2,12 @@ import random
 import pandas as pd
 from itertools import product
 
-from blackjack_simulator.components.hand import PlayerHand, DealerHand
-from blackjack_simulator.components.deck import Deck
 from blackjack_simulator.components.chart import Chart
-
 from blackjack_simulator.components.bet import Bet
+from blackjack_simulator.simulation.functions import deal, shuffle_cut_deck
 from blackjack_simulator.simulation.game import run_dealer_actions, run_player_actions, calculate_payout
 
 from typing import Sequence
-
-# not sure where to put this tbh...
-def deal(deck:Deck) -> tuple[PlayerHand, DealerHand]:
-    player_cards = []
-    dealer_cards = []
-
-    player_cards.append(deck.draw())
-    dealer_cards.append(deck.draw())
-    player_cards.append(deck.draw())
-    dealer_cards.append(deck.draw())
-
-    return PlayerHand(player_cards), DealerHand(dealer_cards)
 
 
 def summarize(sequence:Sequence[tuple[float]]) -> dict[str, float]:
@@ -122,18 +108,6 @@ class Simulator:
         return self._results_dict
 
 
-    def shuffle_cut_deck(self) -> tuple[Deck, int]:
-        deck = Deck.ndecks(self.n_decks)
-        deck.shuffle()
-
-        # cut card / stop value will be somewhere in the middle half of the deck
-        stop = random.randint(
-            int(len(deck)*.25),
-            int(len(deck)*.75),
-        )
-
-        return deck, stop
-
     def run(self, hands = 10, overwrite:bool=False):
 
         if self._results_dict is not None and not overwrite:
@@ -145,12 +119,9 @@ class Simulator:
         
         while hand_counter < hands:
             if shoe_counter > stop:
-                deck,stop = self.shuffle_cut_deck()
+                deck,stop = shuffle_cut_deck(self.n_decks)
             start_n_cards = len(deck) # lazy way to get how many cards used per round...
             player_hand, dealer_hand = deal(deck)
-            # print(player_hand)
-            # print(dealer_hand)
-            # print()
 
             bet = Bet(player_hand, units=1) # TODO: flexible units involving pressing & deck cound
             bets = run_player_actions(bet , dealer_hand, deck, self.chart)
