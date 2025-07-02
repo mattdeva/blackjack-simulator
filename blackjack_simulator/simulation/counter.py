@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from blackjack_simulator.components.enums import CardValue
 from blackjack_simulator.components.card import card_value_lookup
 
@@ -16,7 +18,7 @@ class Counter:
         self.minus_list = self._get_card_values(minus_list)
 
     @classmethod
-    def from_low_high_cutoffs(cls, low:str|int|CardValue, high:str|int|CardValue):
+    def from_low_high_cutoffs(cls, low:str|int|CardValue, high:str|int|CardValue) -> Counter:
         low,high = cls._get_card_values([low, high])
 
         card_values = list(CardValue)
@@ -30,7 +32,7 @@ class Counter:
         return cls(plus_list, neutral_list, minus_list)
         
     @staticmethod
-    def _get_card_values(input_:ValueList):
+    def _get_card_values(input_:ValueList) -> list[CardValue]:
         out_list = []
         for i in input_:
             if isinstance(i, CardValue):

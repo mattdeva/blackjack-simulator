@@ -30,7 +30,7 @@ class Deck:
     def ndecks(cls, n:int) -> Deck:
         return cls([Card(value, suit) for suit, value in product(CardSuit, CardValue)]*n)
     
-    def shuffle(self):
+    def shuffle(self) -> None:
         random.shuffle(self.cards)
     
     def add_card(self, card:Card, position:str|int|None=None) -> None:

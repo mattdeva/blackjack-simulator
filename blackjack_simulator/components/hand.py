@@ -1,5 +1,3 @@
-
-
 from blackjack_simulator.components.card import Card
 from blackjack_simulator.components.enums import CardValue
 
@@ -69,11 +67,11 @@ class DealerHand(Hand):
         return f'DealerHand({self.cards})'
     
     @property
-    def upcard(self):
+    def upcard(self) -> Card:
         return self.cards[1]
     
     @property
-    def upcard_value(self):
+    def upcard_value(self) -> CardValue:
         return 'A' if self.upcard.game_value == 1 else self.upcard.game_value # Annoying fix for harcodeding A to 1 earlier
     
     @property # NOTE: not 100% sure about this here while playerhand activity based externally... but i think it makes sense...
@@ -99,7 +97,7 @@ class PlayerHand(Hand):
         return True if self.starting_hand and self.cards[0].value == self.cards[1].value else False
     
     @property
-    def lookup_value(self) -> str: # idk about this name...
+    def lookup_value(self) -> str|int: # idk about this name...
         if self.splitable and self.has_ace:
             return f"{self.cards[0].value.value},{self.cards[1].value.value}"
         elif self.splitable:

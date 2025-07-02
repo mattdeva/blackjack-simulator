@@ -48,7 +48,7 @@ class Chart:
         if cols_w_invalid_values:
             raise ValueError(f"found columns with invalid action values: {cols_w_invalid_values}")
 
-    def _qc_init(self, input_df:pd.DataFrame) -> pd.DatFrame:
+    def _qc_init(self, input_df:pd.DataFrame) -> pd.DataFrame:
         ''' check to ensure attributes of table are expected. raise errors if not. '''
         # make sure column and index values are legit
         self._check_columns(input_df)

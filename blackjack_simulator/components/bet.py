@@ -12,7 +12,7 @@ class Bet:
         # NOTE: should make a custom object for this (can do later)
         
     @property
-    def active(self):
+    def active(self) -> bool:
         return True if self.state == HandState.ACTIVE else False
     
     def split(self, dealer_upcard_value:CardValue) -> tuple[Bet]:
@@ -23,5 +23,5 @@ class Bet:
             Bet(PlayerHand([self.player_hand.cards[1]]), self.units, history=history)
         )
     
-    def add_action(self, action:Action, dealer_upcard_value:CardValue):
+    def add_action(self, action:Action, dealer_upcard_value:CardValue) -> None:
         self.history.append((action, self.player_hand.lookup_value, dealer_upcard_value))

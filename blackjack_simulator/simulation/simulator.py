@@ -102,13 +102,13 @@ class Simulator:
         return df
     
     @property
-    def results_dict(self):
+    def results_dict(self) -> dict:
         if self._results_dict is None:
             self._results_dict = self._get_empty_results(self.chart) # NOTE: would need to be updated if using multiple charts
         return self._results_dict
 
 
-    def run(self, hands = 10, overwrite:bool=False):
+    def run(self, hands = 10, overwrite:bool=False) -> None:
 
         if self._results_dict is not None and not overwrite:
             raise ValueError(f'non-emtpy results. must set overwrite to True') # safeguard agaisnt overwriting (temp prob)
