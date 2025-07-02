@@ -113,7 +113,7 @@ class Simulator:
         if self._results_dict is not None and not overwrite:
             raise ValueError(f'non-emtpy results. must set overwrite to True') # safeguard agaisnt overwriting (temp prob)
                 
-        deck, stop= self.shuffle_cut_deck()
+        deck, stop= shuffle_cut_deck(self.n_decks)
         hand_counter = 0
         shoe_counter = 0
         
