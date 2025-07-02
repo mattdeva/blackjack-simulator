@@ -9,12 +9,14 @@ class Bet:
         self.units = units
         self.state = state
         self.history = [] if history is None else history
-
+        # NOTE: should make a custom object for this (can do later)
+        
     @property
     def active(self):
         return True if self.state == HandState.ACTIVE else False
     
     def split(self, dealer_upcard_value:CardValue) -> tuple[Bet]:
+        ''' split bet into 2. add history to list. '''
         history=[(Action.SPLIT, self.player_hand.lookup_value, dealer_upcard_value)]
         return (
             Bet(PlayerHand([self.player_hand.cards[0]]), self.units, history=history),
