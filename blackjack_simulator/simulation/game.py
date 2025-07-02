@@ -10,11 +10,11 @@ def run_player_actions(
         deck:Deck, 
         chart:Chart, 
         max_splits:int=4,
-        surrender_backup:Action=Action.HIT
+        surrender_backup:Action=Action.HIT # if surrender action on chart, but non-starting hand
     ) -> list[Bet]:
 
     if isinstance(bets, Bet):
-        bets = [bets]
+        bets = [bets] # want a list. if hands split, will add to list
 
     if len(bets) > 1:
         raise ValueError(f'run_player_actions exects a single bet as input. got {bets}.')
@@ -23,7 +23,7 @@ def run_player_actions(
     while i<20 and any([b.active for b in bets]): # break if no active hands
         for bet in [b for b in bets if b.active]:
 
-            if len(bet.player_hand) == 1:
+            if len(bet.player_hand) == 1: # if bet from split, will only have one card
                 bet.player_hand.add_card(deck.draw())
 
             if bet.player_hand.blackjack:
@@ -31,18 +31,18 @@ def run_player_actions(
                 continue
 
             if dealer_hand.blackjack:
-                bet.state = HandState.OOF
+                bet.state = HandState.OOF # oof = dealer blackjack :)
                 break
 
             action = chart.action_lookup(dealer_upcard=dealer_hand.upcard, player_hand=bet.player_hand)
 
             if action == Action.SURRENDER:
                 if len(bet.player_hand) == 2:
-                    bet.add_action(Action.SURRENDER, dealer_hand.upcard_value)
+                    bet.add_action(Action.SURRENDER, dealer_hand.upcard_value) # action added to bet history
                     bet.state = HandState.SURRENDER
                     continue
                 else:
-                    action = surrender_backup
+                    action = surrender_backup # 
 
             if action == Action.DOUBLE:
                 if len(bet.player_hand) == 2:
@@ -51,7 +51,7 @@ def run_player_actions(
                     bet.units *= 2
                     continue
                 else:
-                    action = Action.HIT
+                    action = Action.HIT # hit if cant double
 
             if action == Action.SPLIT:
                 if len(bets) <= max_splits:
@@ -59,9 +59,9 @@ def run_player_actions(
                     split_bets = bet.split(dealer_hand.upcard_value)
                     bets.insert(0, split_bets[0])
                     bets.insert(1, split_bets[1])
-                    break
+                    break # starts loop at the split bets
 
-                else:
+                else: # if split no longer available, check the chart but look at hand total
                     action = chart.action_lookup(
                         dealer_upcard=dealer_hand.upcard, 
                         player_hand_value=bet.player_hand.total
@@ -76,7 +76,7 @@ def run_player_actions(
                 if bet.player_hand.total == 21:
                     bet.state = HandState.STAND
                     continue
-                break
+                break # if bust or stand move to next bet, otherwise restart loop (lookup action of current bet)
 
             if action == Action.STAND:
                 bet.add_action(Action.STAND, dealer_hand.upcard_value)
@@ -97,8 +97,6 @@ def run_dealer_actions(dealer_hand:DealerHand, bets:list[Bet], deck:Deck) -> Non
     while i<10 and dealer_hand.active and not dealer_hand.bust and any([b for b in bets if b.state in [HandState.STAND]]):
         dealer_hand.add_card(deck.draw())
         i+=1
-
-from collections import defaultdict
 
 def calculate_payout(bet:Bet, dealer_hand:DealerHand, blackjack_payout:float, surrender_payout:float) -> float:
 
