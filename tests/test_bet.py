@@ -1,6 +1,6 @@
 from blackjack_simulator.components.card import Card
 from blackjack_simulator.components.hand import PlayerHand
-from blackjack_simulator.components.bet import Bet
+from blackjack_simulator.components.bet import Bet, History
 from blackjack_simulator.components.enums import HandState, Action
 
 def test_init():
@@ -28,4 +28,5 @@ def test_split():
     
     assert len(split1.history)== len(split2.history) == 1
     assert split1.units == split2.units == 1
-    assert split1.history[0] == split2.history[0] == (Action.SPLIT, '3,3', 5)
+    assert split1.history[0] == split2.history[0] == History(Action.SPLIT, '3,3', 5, None)
+    
