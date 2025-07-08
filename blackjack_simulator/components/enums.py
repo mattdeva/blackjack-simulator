@@ -27,6 +27,7 @@ class Action(Enum):
     SPLIT = 'SP'
     STAND = 'S'
     SURRENDER = 'SU'
+    NONE = 'NONE'
 
 class HandState(Enum): # NOTE hate this name
     ACTIVE = 'ACTIVE'
