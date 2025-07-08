@@ -27,10 +27,12 @@ def run_player_actions(
                 bet.player_hand.add_card(deck.draw())
 
             if bet.player_hand.blackjack:
+                bet.add_action(Action.NONE, dealer_hand.upcard_value)
                 bet.state = HandState.BLACKJACK
                 continue
 
             if dealer_hand.blackjack:
+                bet.add_action(Action.NONE, dealer_hand.upcard_value)
                 bet.state = HandState.OOF # oof = dealer blackjack :)
                 break
 
@@ -68,8 +70,11 @@ def run_player_actions(
                     )
 
             if action == Action.HIT:
-                bet.add_action(Action.HIT, dealer_hand.upcard_value)
-                bet.player_hand.add_card(deck.draw())
+                # need the card as a seperate variable to log to action prior to adding to hand
+                draw_card = deck.draw()
+                bet.add_action(Action.HIT, dealer_hand.upcard_value, draw_card)
+                bet.player_hand.add_card(draw_card)
+
                 if bet.player_hand.bust:
                     bet.state = HandState.BUST
                     continue
