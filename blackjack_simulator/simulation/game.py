@@ -27,8 +27,12 @@ def run_player_actions(
                 bet.player_hand.add_card(deck.draw())
 
             if bet.player_hand.blackjack:
-                bet.add_action(Action.NONE, dealer_hand.upcard_value)
-                bet.state = HandState.BLACKJACK
+                if len(bets) ==1: # blackjack for user only available on og hand, not splits
+                    bet.add_action(Action.NONE, dealer_hand.upcard_value)
+                    bet.state = HandState.BLACKJACK
+                else:
+                    bet.add_action(Action.STAND, dealer_hand.upcard_value)
+                    bet.state = HandState.STAND
                 continue
 
             if dealer_hand.blackjack:
