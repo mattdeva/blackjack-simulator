@@ -10,7 +10,7 @@ from blackjack_simulator.simulation.counter import Counter
 from blackjack_simulator.simulation.functions import deal, shuffle_cut_deck, get_count
 from blackjack_simulator.simulation.game import run_dealer_actions, run_player_actions, calculate_payout
 
-from typing import Sequence
+from typing import Sequence, Callable
 
 
 @dataclass
@@ -67,6 +67,18 @@ def summarize_ev(records:list[Record]) -> str:
     ev = round(profit_dict['Net'] / observations, 4) if observations > 0 else 0
     return f"Net_Units:{profit_dict['Net']}, Obs:{observations}, EV:{ev}"
 
+def _validate_press_func(func:Callable) -> Callable:
+    for i in [-79,-44,-13,-4,0,1,19,55,123,9875]: # random numbers
+        try:
+            output = func(i)
+        except Exception as e:
+            raise ValueError(f"Press function raised an error with input {i}: {e}")
+        if not isinstance(output, (int,float)):
+            raise ValueError(f'Press function returned non float with input {i}: {output}')
+        if output <= 0:
+            raise ValueError(f'Press function returned value <=0 {i}: {output}')
+    return func
+
 class Simulator:
     def __init__(
             self,
@@ -76,7 +88,8 @@ class Simulator:
             max_splits:int = 4,
             blackjack_payout:float = 3/2,
             surrender_payout:float = 1/2,
-            counter:Counter|None = None
+            counter:Counter|None = None,
+            press_func:Callable|None = None
         ):
         self.chart = chart
         self.dealer_hit_soft_17 = dealer_hit_soft_17
@@ -85,6 +98,8 @@ class Simulator:
         self.blackjack_payout = blackjack_payout
         self.surrender_payout = surrender_payout
         self.counter = Counter.from_low_high_cutoffs(6,10) if counter is None else counter
+        self.press_func = _validate_press_func(press_func) if press_func is not None else lambda x: 1
+
         self._records:list[Record] = []
 
     @property
@@ -161,6 +176,7 @@ class Simulator:
         id_digits = len(str(hands)) if len(str(hands)) > 6 else 6
         
         hand_counter = 0
+        streak = 0
         while hand_counter < hands:
             hand_id = get_hand_id(hand_counter, id_digits) 
 
@@ -174,10 +190,12 @@ class Simulator:
             
             player_hand, dealer_hand = deal(deck)
 
-            bet = Bet(player_hand, units=1) # TODO: flexible units involving pressing & deck cound
+            bet_units = self.press_func(streak)
+            bet = Bet(player_hand, units=bet_units) # TODO: flexible units involving deck count
             bets = run_player_actions(bet , dealer_hand, deck, self.chart)
             run_dealer_actions(dealer_hand, bets, deck)
 
+            hand_net = 0 # for the streak.. i might be overcomplicating things...
             for bet in bets:
                 payout = calculate_payout(bet, dealer_hand, self.blackjack_payout, self.surrender_payout)
 
@@ -193,6 +211,18 @@ class Simulator:
                         history.hit_card,
                         payout
                     ))
+
+                hand_net += payout - bet.units
+
+            # if hand push, dont touch streak
+            if hand_net > 0 and streak >= 0: # if hand win and winning streak, add 1
+                streak += 1
+            if hand_net > 0 and streak < 0: # if hand win and losing streak, set to 1
+                streak = 1
+            if hand_net < 0 and streak <= 0: # if hand lose and losing streak, sub 1
+                streak -= 1
+            if hand_net < 0 and streak > 0: # if hand lose and winning streak, set to -1
+                streak = -1
 
             end_n_cards = len(deck)
             shoe_counter += start_n_cards - end_n_cards
