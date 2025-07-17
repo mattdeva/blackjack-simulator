@@ -8,7 +8,7 @@ from blackjack_simulator.components.hand import PlayerHand
 
 @pytest.fixture
 def chart():
-    return Chart.from_excel('data/strategy_charts.xlsx')
+    return Chart.from_excel('data/strategy_charts.xlsx', sheet_name='Chart1')
 
 @pytest.mark.parametrize("df, key, error", [
     (pd.DataFrame({'a':[1,2], 'b':[3,4]}), ['a','b'], False),
