@@ -89,7 +89,8 @@ class Simulator:
             blackjack_payout:float = 3/2,
             surrender_payout:float = 1/2,
             counter:Counter|None = None,
-            press_func:Callable|None = None
+            press_func:Callable|None = None,
+            name:str=None
         ):
         self.chart = chart
         self.dealer_hit_soft_17 = dealer_hit_soft_17
@@ -99,6 +100,7 @@ class Simulator:
         self.surrender_payout = surrender_payout
         self.counter = Counter.from_low_high_cutoffs(6,10) if counter is None else counter
         self.press_func = _validate_press_func(press_func) if press_func is not None else lambda x: 1
+        self.name = name
 
         self._records:list[Record] = []
 
@@ -125,7 +127,7 @@ class Simulator:
 
         return df
     
-    def _filter_records_by_lookup(self, lookup:tuple[int,str]) -> list[Record]:
+    def filter_records_by_lookup(self, lookup:tuple[int,str]) -> list[Record]:
         return [r for r in self._records if r.chart_lookup == lookup]
     
     def records_to_df(self):
@@ -133,32 +135,39 @@ class Simulator:
             print('No records found. Run simulation.')
         else:
             return pd.DataFrame([r.to_dict() for r in self._records])
+        
+    def summarize_records(self, records:list[Record], typ:str) -> str|tuple[str]:
+
+        if typ not in ['profit', 'win', 'ev', 'all']: # NOTE: should make enums for this but too lazy rn...
+            raise ValueError(f"output_chart typ must be in ['profit', 'win', 'ev', 'all']. got {typ}")
+        
+        if typ == 'profit':
+            return summarize_profit(records)
+        if typ == 'win':
+            return summarize_wins(records)
+        if typ == 'ev':
+            return summarize_ev(records)
+        if typ == 'all':
+            return (
+                summarize_wins(records),
+                summarize_profit(records),
+                summarize_ev(records)
+            )
     
     def output_chart(self, typ:str) -> pd.DataFrame:
 
-        if typ not in ['profit', 'win', 'ev']: # NOTE: should make enums for this but too lazy rn...
-            raise ValueError(f"output_chart typ must be in ['profit', 'win', 'ev']. got {typ}")
-        
         metric_dict = {}
-        for lookup in self.lookup_keys:
-            records = self._filter_records_by_lookup(lookup)
-            if typ == 'profit':
-                output_str = summarize_profit(records)
-            if typ == 'win':
-                output_str = summarize_wins(records)
-            if typ == 'ev':
-                output_str = summarize_ev(records)
-
-            metric_dict[lookup] = output_str
+        for lookup_key in self.lookup_keys:
+            records = self.filter_records_by_lookup(lookup_key)
+            metric_dict[lookup_key] = self.summarize_records(records, typ)
             
         return self._metric_dict_to_df(metric_dict)
         
-    def output_summary(self):
-        return (
-            summarize_wins(self._records),
-            summarize_profit(self._records),
-            summarize_ev(self._records)
-        )
+    def output_summary(self, lookup_key:tuple[str|int]|None=None, typ='all') -> tuple[str]:
+
+        # NOTE: went back and forth about having its own function for scenarios vs overall.. but i think i like this more
+        records = self._records if lookup_key is None else self.filter_records_by_lookup(lookup_key)
+        return self.summarize_records(records, typ)
     
     def run(self, hands = 10, overwrite:bool=False) -> None:
         
