@@ -1,4 +1,5 @@
 *.ipynb
 !demo/demo.ipynb
+!demo/compare_strategies.ipynb
 *.pyc
 *.txt
