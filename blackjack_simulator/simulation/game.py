@@ -3,13 +3,17 @@ from blackjack_simulator.components.deck import Deck
 from blackjack_simulator.components.hand import DealerHand
 from blackjack_simulator.components.enums import Action, HandState
 from blackjack_simulator.components.bet import Bet
+from blackjack_simulator.simulation.counter import Counter
+from blackjack_simulator.simulation.flex_chart import FlexChart
+
 
 def run_player_actions(
         bets:list[Bet]|Bet, 
         dealer_hand:DealerHand, 
         deck:Deck, 
-        chart:Chart, 
-        max_splits:int=4,
+        chart:Chart, # NOTE: not sure about keeping chart variable with potential of FlexChart..
+        counter:Counter,
+        max_splits:int=3,
         surrender_backup:Action=Action.HIT # if surrender action on chart, but non-starting hand
     ) -> list[Bet]:
 
@@ -20,31 +24,38 @@ def run_player_actions(
         raise ValueError(f'run_player_actions exects a single bet as input. got {bets}.')
 
     i = 0 # saftey
-    while i<20 and any([b.active for b in bets]): # break if no active hands
+    while i<30 and any([b.active for b in bets]): # break if no active hands
         for bet in [b for b in bets if b.active]:
 
             if len(bet.player_hand) == 1: # if bet from split, will only have one card
                 bet.player_hand.add_card(deck.draw())
 
+            deck_count = counter.get_count(deck.drawn_cards)
+
             if bet.player_hand.blackjack:
                 if len(bets) ==1: # blackjack for user only available on og hand, not splits
-                    bet.add_action(Action.NONE, dealer_hand.upcard_value)
+                    bet.add_action(Action.NONE, dealer_hand.upcard_value, deck_count)
                     bet.state = HandState.BLACKJACK
                 else:
-                    bet.add_action(Action.STAND, dealer_hand.upcard_value)
+                    bet.add_action(Action.STAND, dealer_hand.upcard_value, deck_count)
                     bet.state = HandState.STAND
                 continue
 
             if dealer_hand.blackjack:
-                bet.add_action(Action.NONE, dealer_hand.upcard_value)
+                bet.add_action(Action.NONE, dealer_hand.upcard_value, deck_count)
                 bet.state = HandState.OOF # oof = dealer blackjack :)
                 break
-
-            action = chart.action_lookup(dealer_upcard=dealer_hand.upcard, player_hand=bet.player_hand)
-
+            
+            if isinstance(chart, Chart):
+                action = chart.action_lookup(dealer_upcard=dealer_hand.upcard, player_hand=bet.player_hand)
+            elif isinstance(chart, FlexChart):
+                action = chart.action_lookup(deck_count, dealer_upcard=dealer_hand.upcard, player_hand=bet.player_hand)
+            else:
+                raise ValueError(f"chart type must be in ['Chart', 'FlexChart']. got {type(chart)}")
+            
             if action == Action.SURRENDER:
                 if len(bet.player_hand) == 2:
-                    bet.add_action(Action.SURRENDER, dealer_hand.upcard_value) # action added to bet history
+                    bet.add_action(Action.SURRENDER, dealer_hand.upcard_value, deck_count) # action added to bet history
                     bet.state = HandState.SURRENDER
                     continue
                 else:
@@ -52,7 +63,7 @@ def run_player_actions(
 
             if action == Action.DOUBLE:
                 if len(bet.player_hand) == 2:
-                    bet.add_action(Action.DOUBLE, dealer_hand.upcard_value)
+                    bet.add_action(Action.DOUBLE, dealer_hand.upcard_value, deck_count)
                     bet.state = HandState.DOUBLE
                     bet.units *= 2
                     continue
@@ -60,23 +71,27 @@ def run_player_actions(
                     action = Action.HIT # hit if cant double
 
             if action == Action.SPLIT:
-                if len(bets) <= max_splits:
+                if len(bets) <= max_splits+1:
                     bets.remove(bet)
-                    split_bets = bet.split(dealer_hand.upcard_value)
+                    split_bets = bet.split(dealer_hand.upcard_value, deck_count)
                     bets.insert(0, split_bets[0])
                     bets.insert(1, split_bets[1])
                     break # starts loop at the split bets
 
                 else: # if split no longer available, check the chart but look at hand total
-                    action = chart.action_lookup(
-                        dealer_upcard=dealer_hand.upcard, 
-                        player_hand_value=bet.player_hand.total
-                    )
 
+                    # NOTE: sloppy, think of a better way after inital enhancement (repeat pattern from above)
+                    if isinstance(chart, Chart):
+                        action = chart.action_lookup(dealer_upcard=dealer_hand.upcard, player_hand_value=bet.player_hand.total)
+                    elif isinstance(chart, FlexChart):
+                        action = chart.action_lookup(deck_count, dealer_upcard=dealer_hand.upcard, player_hand_value=bet.player_hand.total)
+                    else:
+                        raise ValueError(f"chart type must be in ['Chart', 'FlexChart']. got {type(chart)}")
+                    
             if action == Action.HIT:
                 # need the card as a seperate variable to log to action prior to adding to hand
                 draw_card = deck.draw()
-                bet.add_action(Action.HIT, dealer_hand.upcard_value, draw_card)
+                bet.add_action(Action.HIT, dealer_hand.upcard_value, deck_count, draw_card)
                 bet.player_hand.add_card(draw_card)
 
                 if bet.player_hand.bust:
@@ -88,7 +103,7 @@ def run_player_actions(
                 break # if bust or stand move to next bet, otherwise restart loop (lookup action of current bet)
 
             if action == Action.STAND:
-                bet.add_action(Action.STAND, dealer_hand.upcard_value)
+                bet.add_action(Action.STAND, dealer_hand.upcard_value, deck_count)
                 bet.state = HandState.STAND
                 continue
 
