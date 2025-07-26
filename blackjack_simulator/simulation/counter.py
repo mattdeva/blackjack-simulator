@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from blackjack_simulator.components.enums import CardValue
 from blackjack_simulator.components.card import card_value_lookup
+from blackjack_simulator.components.deck import Deck
+from blackjack_simulator.components.deck import Card
 
 ValueList = list[str|int|CardValue]
 
@@ -40,3 +42,17 @@ class Counter:
             else:
                 out_list.append(card_value_lookup[i])
         return out_list
+    
+    def get_count(self, input_:Deck|list[Card]) -> int:
+        count = 0
+        if not isinstance(input_, Deck) and not (isinstance(input_, list) and all([isinstance(c, Card) for c in input_])):
+            raise ValueError(f'must type Deck or list of Cards. got {input_}')
+        
+        cards = input_.drawn_cards if isinstance(input_, Deck) else input_
+        
+        for card in cards:
+            if card.value in self.minus_list:
+                count -= 1
+            if card.value in self.plus_list:
+                count += 1
+        return count
