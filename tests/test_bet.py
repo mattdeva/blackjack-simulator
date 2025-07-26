@@ -19,14 +19,14 @@ def test_active():
 
 def test_add_action():
     bet = Bet(PlayerHand([Card('K','D'), Card(3,'S')]))
-    bet.add_action(Action.HIT, 7)
+    bet.add_action(Action.HIT, 7, 0)
     assert len(bet.history) == 1
 
 def test_split():
     bet = Bet(PlayerHand([Card(3,'D'), Card(3,'S')]))
-    split1, split2 = bet.split(5)
+    split1, split2 = bet.split(5, 0)
     
     assert len(split1.history)== len(split2.history) == 1
     assert split1.units == split2.units == 1
-    assert split1.history[0] == split2.history[0] == History(Action.SPLIT, '3,3', 5, None)
+    assert split1.history[0] == split2.history[0] == History(Action.SPLIT, '3,3', 5, 0, None)
     

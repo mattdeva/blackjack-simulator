@@ -11,6 +11,7 @@ class History:
     action: Action
     player_lookup_value: str|int
     dealer_upcard_value: str|int
+    deck_count:int
     hit_card: Card|None
 
 class Bet:
@@ -24,15 +25,15 @@ class Bet:
     def active(self) -> bool:
         return True if self.state == HandState.ACTIVE else False
     
-    def split(self, dealer_upcard_value:CardValue) -> tuple[Bet]:
+    def split(self, dealer_upcard_value:CardValue, deck_count:int) -> tuple[Bet]:
         ''' split bet into 2. add history to list. '''
-        history=[History(Action.SPLIT, self.player_hand.lookup_value, dealer_upcard_value, None)]
+        history=[History(Action.SPLIT, self.player_hand.lookup_value, dealer_upcard_value, deck_count, None)]
         return (
             Bet(PlayerHand([self.player_hand.cards[0]]), self.units, history=history),
             Bet(PlayerHand([self.player_hand.cards[1]]), self.units, history=history)
         )
     
-    def add_action(self, action:Action, dealer_upcard_value:CardValue, hit_card:Card|None=None) -> None:
+    def add_action(self, action:Action, dealer_upcard_value:CardValue, deck_count:int, hit_card:Card|None=None) -> None:
         self.history.append(
-            History(action, self.player_hand.lookup_value, dealer_upcard_value, hit_card)
+            History(action, self.player_hand.lookup_value, dealer_upcard_value, deck_count, hit_card)
         )
