@@ -7,10 +7,11 @@ from blackjack_simulator.components.bet import Bet
 from blackjack_simulator.components.card import Card
 from blackjack_simulator.components.enums import Action
 from blackjack_simulator.simulation.counter import Counter
-from blackjack_simulator.simulation.functions import deal, shuffle_cut_deck, get_count
+from blackjack_simulator.simulation.flex_chart import FlexChart
+from blackjack_simulator.simulation.functions import deal, shuffle_cut_deck
 from blackjack_simulator.simulation.game import run_dealer_actions, run_player_actions, calculate_payout
 
-from typing import Sequence, Callable
+from typing import Callable
 
 
 @dataclass
@@ -19,8 +20,7 @@ class Record:
     hand_id: str
     player_hand_lookup: str|int
     dealer_upcard_value: str|int
-    count: int
-    chart: int
+    deck_count: int
     bet_units: float
     action: Action
     hit_card: Card
@@ -82,10 +82,10 @@ def _validate_press_func(func:Callable) -> Callable:
 class Simulator:
     def __init__(
             self,
-            chart:Chart, # TODO: add flexible charts in future
+            chart:Chart | FlexChart,
             dealer_hit_soft_17:bool = True,
             n_decks: int = 6,
-            max_splits:int = 4,
+            max_splits:int = 3,
             blackjack_payout:float = 3/2,
             surrender_payout:float = 1/2,
             counter:Counter|None = None,
@@ -189,9 +189,6 @@ class Simulator:
         while hand_counter < hands:
             hand_id = get_hand_id(hand_counter, id_digits) 
 
-            # NOTE: doing pre-hand-count for now, but should update for real-time count after
-            pre_hand_count = get_count(deck.drawn_cards, self.counter)
-
             # shoe stuff
             if shoe_counter > stop:
                 deck,stop = shuffle_cut_deck(self.n_decks)
@@ -201,7 +198,7 @@ class Simulator:
 
             bet_units = self.press_func(streak)
             bet = Bet(player_hand, units=bet_units) # TODO: flexible units involving deck count
-            bets = run_player_actions(bet , dealer_hand, deck, self.chart)
+            bets = run_player_actions(bet, dealer_hand, deck, self.chart, self.counter)
             run_dealer_actions(dealer_hand, bets, deck)
 
             hand_net = 0 # for the streak.. i might be overcomplicating things...
@@ -213,8 +210,7 @@ class Simulator:
                         hand_id, 
                         history.player_lookup_value, 
                         history.dealer_upcard_value,
-                        pre_hand_count,
-                        1, # NOTE: only one chart type allowed for now
+                        history.deck_count,
                         bet.units, 
                         history.action, 
                         history.hit_card,
