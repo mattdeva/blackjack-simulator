@@ -1,5 +1,6 @@
 *.ipynb
 !demo/demo.ipynb
 !demo/compare_strategies.ipynb
+!demo/analyze_count_impact.ipynb
 *.pyc
 *.txt
