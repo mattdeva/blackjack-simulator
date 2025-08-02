@@ -20,6 +20,7 @@ class Record:
     hand_id: str
     player_hand_lookup: str|int
     dealer_upcard_value: str|int
+    dealer_total: int
     deck_count: int
     bet_units: float
     action: Action
@@ -56,7 +57,7 @@ def summarize_wins(records:list[Record]) -> str:
 
 def summarize_profit(records:list[Record]) -> str:
     buyin = sum([record.bet_units for record in records]) 
-    payout = sum([record.final_payout for record in records])
+    payout = round(sum([record.final_payout for record in records]),1)
     return f"Buyin:{buyin}, Payout:{payout}, Net:{round(payout-buyin,1)}" # NOTE: may want to format ast or json. ok for now.
 
 def summarize_ev(records:list[Record]) -> str:
@@ -210,6 +211,7 @@ class Simulator:
                         hand_id, 
                         history.player_lookup_value, 
                         history.dealer_upcard_value,
+                        dealer_hand.total,
                         history.deck_count,
                         bet.units, 
                         history.action, 
