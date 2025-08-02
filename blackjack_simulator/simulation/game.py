@@ -45,6 +45,13 @@ def run_player_actions(
                 bet.add_action(Action.NONE, dealer_hand.upcard_value, deck_count)
                 bet.state = HandState.OOF # oof = dealer blackjack :)
                 break
+
+            if bet.player_hand.bust:
+                bet.state = HandState.BUST
+                continue
+            if bet.player_hand.total == 21:
+                bet.state = HandState.STAND
+                continue
             
             if isinstance(chart, Chart):
                 action = chart.action_lookup(dealer_upcard=dealer_hand.upcard, player_hand=bet.player_hand)
@@ -63,7 +70,10 @@ def run_player_actions(
 
             if action == Action.DOUBLE:
                 if len(bet.player_hand) == 2:
-                    bet.add_action(Action.DOUBLE, dealer_hand.upcard_value, deck_count)
+                    # need the card as a seperate variable to log to action prior to adding to hand
+                    draw_card = deck.draw()
+                    bet.add_action(Action.DOUBLE, dealer_hand.upcard_value, deck_count, draw_card)
+                    bet.player_hand.add_card(draw_card)
                     bet.state = HandState.DOUBLE
                     bet.units *= 2
                     continue
@@ -94,13 +104,7 @@ def run_player_actions(
                 bet.add_action(Action.HIT, dealer_hand.upcard_value, deck_count, draw_card)
                 bet.player_hand.add_card(draw_card)
 
-                if bet.player_hand.bust:
-                    bet.state = HandState.BUST
-                    continue
-                if bet.player_hand.total == 21:
-                    bet.state = HandState.STAND
-                    continue
-                break # if bust or stand move to next bet, otherwise restart loop (lookup action of current bet)
+                break # restart loop (lookup action of current bet)
 
             if action == Action.STAND:
                 bet.add_action(Action.STAND, dealer_hand.upcard_value, deck_count)
@@ -118,7 +122,7 @@ def run_dealer_actions(dealer_hand:DealerHand, bets:list[Bet], deck:Deck) -> Non
         raise ValueError(f'bets still active. {[b.state for b in bets]}')
 
     i = 0 # saftey
-    while i<10 and dealer_hand.active and not dealer_hand.bust and any([b for b in bets if b.state in [HandState.STAND]]):
+    while i<15 and dealer_hand.active and not dealer_hand.bust and any([b for b in bets if b.state in [HandState.STAND, HandState.DOUBLE]]):
         dealer_hand.add_card(deck.draw())
         i+=1
 
@@ -132,12 +136,13 @@ def calculate_payout(bet:Bet, dealer_hand:DealerHand, blackjack_payout:float, su
     if bet.state == HandState.SURRENDER:
         return bet.units * surrender_payout
     if dealer_hand.bust and not bet.player_hand.bust:
-        return bet.units * 4 if bet.state == HandState.DOUBLE else bet.units * 2
+        return bet.units * 2
     if bet.player_hand.bust:
         return 0
     if bet.player_hand.total > dealer_hand.total:
-        return bet.units * 4 if bet.state == HandState.DOUBLE else bet.units * 2
+        return bet.units * 2
     if bet.player_hand.total < dealer_hand.total:
         return 0
     if bet.player_hand.total == dealer_hand.total:
         return bet.units
+    raise ValueError(f'something wrong with payout: {bet}, {dealer_hand}')
